@@ -1,0 +1,1109 @@
+/* ========================================
+ * VARIABLES CSS Y RESET
+ * ======================================== */
+:root {
+    --color-primary: #000;
+    --color-background: #f0f0f0;
+    --color-surface: #fff;
+    --border-radius: 25px;
+    --transition: all 0.3s ease;
+    --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+}
+
+/* ========================================
+ * ESTILOS PARA CARRUSEL DE FONDO - CON EFECTO DESENFOQUE
+ * ======================================== */
+.carrusel-fondo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+}
+
+.carrusel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+    filter: blur(8px);
+    transform: scale(1.1);
+}
+
+.carrusel-item.active {
+    opacity: 1;
+}
+
+.contenedor-central {
+    position: relative;
+    z-index: 1;
+}
+
+/* ========================================
+ * ANIMACIONES GLOBALES
+ * ======================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* ========================================
+ * ESTILOS GLOBALES Y UTILIDADES
+ * ======================================== */
+.error-mensaje {
+    color: #d32f2f;
+    font-weight: bold;
+    text-align: center;
+    background-color: #ffebee;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #d32f2f;
+}
+
+.error-mensaje.success {
+    background-color: #d4edda !important;
+    color: #155724 !important;
+    border-left: 4px solid #28a745 !important;
+}
+
+.btn-regresar {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 15px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.btn-regresar:hover {
+    background-color: #333;
+}
+
+/* ========================================
+ * HEADER COMÚN PARA TODAS LAS PÁGINAS
+ * ======================================== */
+.rastros-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background-color: #111;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 50;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    justify-content: center;
+}
+
+.empresa-info-selector {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.nombre-empresa-actual {
+    color: #bbb;
+    font-size: 14px;
+    margin-left: 15px;
+    font-weight: 500;
+}
+
+/* ========================================
+ * ESTILOS PARA LOGIN
+ * ======================================== */
+body {
+    display: block;
+    min-height: 100vh;
+    background-color: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+.contenedor-central {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+
+.contenedor-login {
+    width: 100%;
+    max-width: 320px;
+    padding: 40px 24px;
+    background-color: var(--color-primary);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeIn 0.5s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.logo-contenedor {
+    width: 100%;
+    height: 80px;
+    margin-bottom: 24px;
+    background-color: var(--color-surface);
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.logo {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+.input-login {
+    width: 100%;
+    height: 48px;
+    padding: 0 20px;
+    margin-bottom: 16px;
+    border-radius: var(--border-radius);
+    border: 2px solid transparent;
+    background-color: var(--color-surface);
+    font-size: 15px;
+    transition: var(--transition);
+    text-align: center;
+    outline: none;
+}
+
+.input-login:focus {
+    border-color: var(--color-surface);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+.btn-inicio-sesion {
+    width: 100%;
+    height: 48px;
+    padding: 0 20px;
+    border-radius: var(--border-radius);
+    border: none;
+    background-color: var(--color-surface);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-inicio-sesion:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-2px);
+}
+
+/* ========================================
+ * ESTILOS PARA RASTROS
+ * ======================================== */
+body.rastros-page {
+    display: block;
+    padding: 0;
+    margin: 0;
+    min-height: 100vh;
+    background-color: #000;
+}
+
+.contenedor-principal {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+.seccion-imagen {
+    flex: 2;
+    min-width: 40%;
+    position: relative;
+    background-image: url("./images/lab.jpg");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+
+.etiqueta-cliente {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.seccion-botones {
+    flex: 3;
+    min-width: 60%;
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.btn-menu-rastros {
+    width: 80%;
+    max-width: 450px;
+    height: 90px;
+    margin: 20px 0;
+    border-radius: 45px;
+    border: none;
+    background-color: #fff;
+    color: #000;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+.btn-menu-rastros:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================
+ * ESTILOS PARA PROGRAMACIÓN
+ * ======================================== */
+body.programacion-page {
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    display: block;
+    padding-top: 70px;
+}
+
+.programacion-contenedor {
+    width: 90%;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.programacion-contenedor h2 {
+    color: #000;
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 26px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.input-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+    font-size: 14px;
+}
+
+.programacion-contenedor input[type="date"],
+.programacion-contenedor input[type="time"],
+.programacion-contenedor textarea {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    font-family: inherit;
+}
+
+.programacion-contenedor input:focus,
+.programacion-contenedor textarea:focus {
+    border-color: #000;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.programacion-contenedor textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+.btn-guardar {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    padding: 12px 25px;
+    border-radius: 30px;
+    border: none;
+    background-color: #000;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+}
+
+.btn-guardar:hover {
+    background-color: #333;
+    transform: translateY(-2px);
+}
+
+/* ========================================
+ * ESTILOS PARA ACTIVIDADES
+ * ======================================== */
+body.actividades-page {
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    display: block;
+    padding-top: 70px;
+}
+
+.actividades-contenedor {
+    width: 95%;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.actividades-contenedor h2 {
+    color: #000;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 26px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.tabla-scroll {
+    overflow-x: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+#tabla-actividades {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+    font-size: 14px;
+    min-width: 800px;
+}
+
+#tabla-actividades thead th {
+    background-color: #000;
+    color: white;
+    padding: 12px 10px;
+    text-align: left;
+    text-transform: uppercase;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+#tabla-actividades tbody tr {
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+#tabla-actividades tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+#tabla-actividades tbody td {
+    padding: 10px;
+    vertical-align: middle;
+}
+
+/* ========================================
+ * ESTILOS PARA INFORMACIÓN EMPRESA
+ * ======================================== */
+body.info-empresa-page {
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-background);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.info-empresa-container {
+    max-height: 100vh;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.info-container {
+    background-color: var(--color-surface);
+    padding: 30px;
+    border-radius: 10px;
+    width: 95%;
+    max-width: 1400px;
+    box-shadow: var(--shadow);
+    margin: 20px auto;
+    min-height: 600px;
+}
+
+.info-container h2 {
+    margin-bottom: 20px;
+    color: var(--color-primary);
+    text-align: center;
+    position: sticky;
+    top: 0;
+    background: var(--color-surface);
+    padding: 15px;
+    margin: -30px -30px 20px -30px;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.info-container h3 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: #333;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 5px;
+}
+
+.info-container p {
+    margin-bottom: 12px;
+    line-height: 1.6;
+    font-size: 15px;
+}
+
+.info-basica-container {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 30px;
+}
+
+.info-basica-container h3 {
+    color: #000;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 8px;
+}
+
+.info-basica-container p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.herramientas-busqueda {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    position: sticky;
+    top: 80px;
+    z-index: 5;
+}
+
+.herramientas-busqueda input,
+.herramientas-busqueda select {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    min-width: 200px;
+    font-family: inherit;
+}
+
+.herramientas-busqueda input:focus,
+.herramientas-busqueda select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.btn-limpiar {
+    padding: 10px 15px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.btn-limpiar:hover {
+    background: #5a6268;
+}
+
+.tabla-scroll-container {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-top: 10px;
+    position: relative;
+}
+
+.seccion-tabla {
+    margin-top: 30px;
+}
+
+.seccion-tabla h3 {
+    color: var(--color-primary);
+    margin-bottom: 15px;
+    font-size: 18px;
+    position: sticky;
+    top: 150px;
+    background: var(--color-surface);
+    padding: 10px 0;
+    z-index: 4;
+}
+
+/* ========================================
+ * ESTRUCTURA CORREGIDA DE TABLA DE CONTACTOS
+ * ======================================== */
+.tabla-areas {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    min-width: 1000px;
+}
+
+.tabla-areas thead {
+    background-color: var(--color-primary);
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.tabla-areas th {
+    padding: 15px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.tabla-areas td {
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+    background: white;
+    vertical-align: top;
+    text-align: left;
+    word-wrap: break-word;
+}
+
+/* ANCHOS ESPECÍFICOS POR COLUMNA */
+.tabla-areas th:nth-child(1),
+.tabla-areas td:nth-child(1) {
+    width: 15%;
+    min-width: 120px;
+}
+
+.tabla-areas th:nth-child(2),
+.tabla-areas td:nth-child(2) {
+    width: 18%;
+    min-width: 150px;
+}
+
+.tabla-areas th:nth-child(3),
+.tabla-areas td:nth-child(3) {
+    width: 15%;
+    min-width: 120px;
+}
+
+.tabla-areas th:nth-child(4),
+.tabla-areas td:nth-child(4) {
+    width: 15%;
+    min-width: 120px;
+}
+
+.tabla-areas th:nth-child(5),
+.tabla-areas td:nth-child(5) {
+    width: 20%;
+    min-width: 180px;
+}
+
+.tabla-areas th:nth-child(6),
+.tabla-areas td:nth-child(6) {
+    width: 12%;
+    min-width: 100px;
+}
+
+.tabla-areas th:nth-child(7),
+.tabla-areas td:nth-child(7) {
+    width: 5%;
+    min-width: 80px;
+    text-align: center;
+}
+
+.tabla-areas tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.tabla-areas tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ========================================
+ * SISTEMA DE EDICIÓN MEJORADO
+ * ======================================== */
+.botones-edicion-container {
+    display: inline-flex;
+    gap: 10px;
+    margin-left: 20px;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.btn-edicion {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: 100px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-edicion:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+#btn-activar-edicion {
+    background-color: #007bff;
+    color: white;
+    min-width: 120px;
+}
+
+#btn-activar-edicion:hover {
+    background-color: #0056b3;
+}
+
+#btn-guardar-cambios {
+    background-color: #28a745;
+    color: white;
+    min-width: 140px;
+}
+
+#btn-guardar-cambios:hover {
+    background-color: #218838;
+}
+
+#btn-cancelar-edicion {
+    background-color: #dc3545;
+    color: white;
+    min-width: 100px;
+}
+
+#btn-cancelar-edicion:hover {
+    background-color: #c82333;
+}
+
+#btn-nueva-fila {
+    padding: 10px 15px;
+    background: #6f42c1;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+    display: none;
+    min-width: 150px;
+    height: 40px;
+}
+
+#btn-nueva-fila:hover {
+    background: #5a2d91;
+}
+#btn-agregar-contacto {
+    padding: 10px 15px;
+    background: #6f42c1;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+    display: none;
+    min-width: 150px;
+    height: 40px;
+}
+
+#btn-agregar-contacto:hover {
+    background: #5a2d91;
+}
+
+.btn-eliminar-fila {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    background-color: #dc3545;
+    color: white;
+    min-width: 60px;
+    height: 30px;
+}
+
+.btn-eliminar-fila:hover {
+    background-color: #c82333;
+    transform: scale(1.05);
+}
+
+/* ESTILOS PARA MODO EDICIÓN CORREGIDOS */
+.tabla-areas .edit-mode {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    font-size: 13px;
+    display: none;
+    box-sizing: border-box;
+}
+
+.tabla-areas .view-mode {
+    display: block;
+    width: 100%;
+}
+
+.tabla-areas tr.editing .view-mode {
+    display: none;
+}
+
+.tabla-areas tr.editing .edit-mode {
+    display: block;
+}
+
+.tabla-areas tr.editing td {
+    background-color: #fff3cd !important;
+}
+
+.tabla-areas td[contenteditable="true"] {
+    border: 1px dashed #ccc !important;
+    background-color: #fff3cd !important;
+    padding: 8px !important;
+    border-radius: 4px;
+    outline: none;
+    transition: all 0.2s ease;
+    min-height: auto;
+}
+
+.tabla-areas td[contenteditable="true"]:focus {
+    border: 2px solid #007bff !important;
+    background-color: #e3f2fd !important;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.fila-nueva {
+    background-color: #d4edda !important;
+}
+
+.fila-nueva td {
+    background-color: #d4edda !important;
+}
+
+.modo-edicion-indicador {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: #ffc107;
+    color: #000;
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    animation: pulse 2s infinite;
+}
+
+/* ========================================
+ * CORRECCIÓN PARA COLUMNA DE ACCIONES - MOSTRAR SIEMPRE EN MODO EDICIÓN
+ * ======================================== */
+.acciones-edicion {
+    display: table-cell !important;
+    text-align: center;
+    white-space: nowrap;
+    width: 80px;
+    min-width: 80px;
+}
+
+.modo-edicion-activo .acciones-edicion {
+    display: table-cell !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.acciones-edicion {
+    display: none;
+}
+
+.fila-nueva .acciones-edicion {
+    display: table-cell !important;
+}
+
+/* ========================================
+ * RESPONSIVE GLOBAL
+ * ======================================== */
+@media (max-width: 768px) {
+    .rastros-header {
+        height: 50px;
+        padding: 0 15px;
+    }
+
+    .contenedor-login {
+        max-width: 100%;
+        margin: 16px;
+        padding: 32px 20px;
+    }
+
+    .contenedor-principal {
+        flex-direction: column;
+    }
+
+    .seccion-imagen {
+        min-height: 250px;
+        min-width: 100%;
+        padding: 20px;
+    }
+
+    .seccion-botones {
+        min-width: 100%;
+        padding: 40px 20px;
+    }
+
+    .btn-menu-rastros {
+        width: 100%;
+        max-width: none;
+        height: 80px;
+        font-size: 16px;
+        margin: 15px 0;
+    }
+
+    .programacion-contenedor {
+        margin: 20px auto;
+        padding: 20px;
+        width: 95%;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .btn-guardar {
+        position: static;
+        width: 100%;
+        margin-top: 30px;
+    }
+
+    .actividades-contenedor {
+        width: 100%;
+        margin: 20px 0;
+        padding: 15px;
+        border-radius: 0;
+    }
+
+    .info-empresa-container {
+        padding: 10px;
+    }
+
+    .info-container {
+        padding: 15px;
+        width: 100%;
+    }
+
+    .herramientas-busqueda {
+        flex-direction: column;
+        align-items: stretch;
+        top: 60px;
+    }
+
+    .herramientas-busqueda input,
+    .herramientas-busqueda select {
+        min-width: auto;
+    }
+
+    .tabla-scroll-container {
+        max-height: 400px;
+    }
+
+    .seccion-tabla h3 {
+        position: static;
+        background: transparent;
+    }
+
+    .botones-edicion-container {
+        margin-left: 0;
+        margin-top: 10px;
+        justify-content: flex-start;
+        width: 100%;
+        order: 2;
+        flex-wrap: wrap;
+    }
+
+    .btn-edicion {
+        font-size: 12px;
+        padding: 6px 8px;
+        min-width: 80px;
+        height: 32px;
+        flex: 1;
+        max-width: calc(50% - 4px);
+    }
+
+    #btn-activar-edicion,
+    #btn-guardar-cambios {
+        min-width: 100px;
+        flex: 2;
+    }
+
+    .tabla-areas {
+        min-width: 800px;
+    }
+
+    .tabla-areas th,
+    .tabla-areas td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .programacion-contenedor {
+        width: 95%;
+        margin: 10px auto;
+        padding: 15px;
+    }
+
+    .actividades-contenedor {
+        padding: 10px;
+    }
+
+    .info-container {
+        padding: 10px;
+    }
+
+    .btn-menu-rastros {
+        height: 70px;
+        font-size: 14px;
+        margin: 12px 0;
+    }
+
+    .seccion-botones {
+        padding: 30px 15px;
+    }
+
+    .botones-edicion-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .btn-edicion {
+        font-size: 11px;
+        padding: 5px 6px;
+        min-width: 70px;
+        height: 30px;
+        flex: 1;
+        max-width: calc(50% - 3px);
+    }
+
+    #btn-activar-edicion,
+    #btn-guardar-cambios {
+        min-width: 90px;
+        flex: 2;
+    }
+}
