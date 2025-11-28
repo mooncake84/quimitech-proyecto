@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\Route;
 // Rutas públicas
 Route::get('/', function () {
     return view('login');
-})->name('login');
+})->name('home');
 
-// CORREGIR: Definir rutas de login con nombres
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login.show');
+// Rutas de login
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 // Rutas protegidas

@@ -35,8 +35,8 @@
                 </div>
             @endif
 
-            {{-- VERIFICA QUE LA RUTA SEA CORRECTA --}}
-            <form method="POST" action="{{ route('login') }}">
+            {{-- FORMULARIO CORREGIDO - usa login.post --}}
+            <form method="POST" action="{{ route('login.post') }}">
                 @csrf
                 
                 <input type="email" id="email" name="email" class="input-login" 
