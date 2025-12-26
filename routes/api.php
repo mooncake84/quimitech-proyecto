@@ -6,8 +6,8 @@ use App\Http\Controllers\AreaContactoController;
 use App\Http\Controllers\ActividadController;
 use Illuminate\Support\Facades\Route;
 
-// Cambiar auth:sanctum por auth (sesiones tradicionales)
-Route::middleware(['auth'])->group(function () {
+// Agregar prefijo 'api' a todas las rutas
+Route::prefix('api')->middleware(['auth'])->group(function () {
     // Empresas
     Route::get('/empresas', [EmpresaController::class, 'index']);
     Route::post('/empresas', [EmpresaController::class, 'store']);
@@ -15,17 +15,15 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/empresas/{id}', [EmpresaController::class, 'update']);
     Route::delete('/empresas/{id}', [EmpresaController::class, 'destroy']);
     
-    // Contactos por área - RUTAS CORREGIDAS
+    // Contactos por área
     Route::get('/contactos', [AreaContactoController::class, 'index']);
     Route::post('/contactos', [AreaContactoController::class, 'store']);
     Route::get('/contactos/{id}', [AreaContactoController::class, 'show']);
     Route::put('/contactos/{id}', [AreaContactoController::class, 'update']);
     Route::delete('/contactos/{id}', [AreaContactoController::class, 'destroy']);
-    
-    // RUTA ESPECÍFICA QUE BUSCA EL JAVASCRIPT - AGREGAR ESTA LÍNEA
     Route::get('/contactos/por-empresa/{empresaId}', [AreaContactoController::class, 'porEmpresa']);
     
-    // Actividades
+    // Actividades - ¡ESTAS SON LAS RUTAS QUE BUSCA EL JAVASCRIPT!
     Route::get('/actividades', [ActividadController::class, 'index']);
     Route::post('/actividades', [ActividadController::class, 'store']);
     Route::get('/actividades/{id}', [ActividadController::class, 'show']);

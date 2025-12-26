@@ -17,85 +17,56 @@
 
     <div class="programacion-contenedor">
         <h2>Programar Nueva Actividad</h2>
-        <div class="form-container">
+        
+        <p id="empresa-actual-indicador">
+            Programando actividad para: <strong>Cargando...</strong>
+        </p>
 
-            <!-- Registro de empleado y cliente -->
-            <div class="form-row">
-                <div class="input-group">
-                    <label for="empleado-registro">Empleado que registra:</label>
-                    <input 
-                        type="text" 
-                        id="empleado-registro" 
-                        placeholder="Ej. Juan Pérez" 
-                        required 
-                    />
+        <!-- Solo formulario de creación -->
+        <div class="formulario-programacion">
+            <form id="form-actividad" class="form-actividad">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fecha-actividad">Fecha:</label>
+                        <input type="date" id="fecha-actividad" name="fecha" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hora-actividad">Hora:</label>
+                        <input type="time" id="hora-actividad" name="hora" required>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label for="cliente-receptor">Cliente que recibirá:</label>
-                    <input 
-                        type="text" 
-                        id="cliente-receptor" 
-                        placeholder="Ej. Distribuidora López" 
-                        required 
-                    />
-                </div>
-            </div>
 
-            <div class="form-row">
-                <div class="input-group">
-                    <label for="fecha-actividad">Fecha de Visita:</label>
-                    <input type="date" id="fecha-actividad" required />
+                <div class="form-group">
+                    <label for="objetivo-actividad">Objetivo:</label>
+                    <textarea id="objetivo-actividad" name="objetivo" rows="3" required 
+                              placeholder="Describe el objetivo de la actividad..."></textarea>
                 </div>
-                <div class="input-group">
-                    <label for="hora-actividad">Hora Estimada:</label>
-                    <input type="time" id="hora-actividad" required />
+
+                <div class="form-group">
+                    <label for="datos-adicionales">Datos Adicionales:</label>
+                    <textarea id="datos-adicionales" name="datos_adicionales" rows="2"
+                              placeholder="Información adicional (opcional)..."></textarea>
                 </div>
-            </div>
 
-            <div class="input-group full-width">
-                <label for="objetivo-visita">Objetivo de la Visita:</label>
-                <textarea
-                    id="objetivo-visita"
-                    rows="3"
-                    placeholder="Ej. Presentación de nuevos productos, seguimiento de pedido, toma de muestra, etc."
-                    required
-                ></textarea>
-            </div>
-
-            <div class="input-group full-width">
-                <label for="datos-adicionales">
-                    Toma de Datos (Datos Relevantes/Muestras):
-                </label>
-                <textarea
-                    id="datos-adicionales"
-                    rows="5"
-                    placeholder="Ej. Se requiere tomar muestra de pH, se confirmará la cantidad de stock, verificar temperatura de almacén, etc."
-                ></textarea>
-            </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        💾 Programar Actividad
+                    </button>
+                    <a href="{{ route('actividades') }}" class="btn btn-secondary">
+                        📋 Ver Actividades Programadas
+                    </a>
+                </div>
+            </form>
         </div>
 
-        <button id="btn-guardar-actividad" class="btn-guardar">
-            Guardar Actividad
-        </button>
-
-        <p
-            id="mensaje-guardado"
-            style="
-                text-align: center;
-                margin-top: 15px;
-                color: green;
-                display: none;
-            "
-        >
-            ¡Actividad programada!
-        </p>
+        <!-- Mensaje de éxito -->
+        <div id="mensaje-exito" class="mensaje-exito" style="display: none;">
+            ✅ Actividad programada exitosamente
+        </div>
     </div>
 
     <script src="{{ asset('js/data.js') }}"></script>
-    <script src="{{ asset('js/errorManager.js') }}"></script>
-    <script src="{{ asset('js/formValidator.js') }}"></script>
-    <script src="{{ asset('js/autoSaveManager.js') }}"></script>
     <script src="{{ asset('js/programacion_script.js') }}"></script>
-    
 </body>
 </html>

@@ -17,16 +17,12 @@ class Actividad extends Model
         'hora',
         'objetivo',
         'datos_adicionales',
-        'estado',
-        'pedido_entregado',
-        'cantidad_entregada',
-        'created_at',
-        'updated_at'
+        'estado'  // Pendiente, Completado, Reprogramado
     ];
 
     protected $casts = [
         'fecha' => 'date',
-        'hora' => 'datetime',
+        'hora' => 'string',
     ];
 
     public function empresa()

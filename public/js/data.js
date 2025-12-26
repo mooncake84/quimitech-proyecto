@@ -1,15 +1,26 @@
-// data.js - Gestión de datos con SQL Server
+// data.js - Gestión de datos con SQL Server - VERSIÓN CORREGIDA
 class DataManager {
     static async cargarEmpresas() {
         try {
             const response = await fetch("/api/empresas");
-            if (!response.ok) throw new Error("Error cargando empresas");
 
-            const empresas = await response.json();
-            console.log(" Empresas cargadas desde SQL Server:", empresas);
-            return empresas;
+            if (!response.ok) {
+                throw new Error(
+                    `Error HTTP ${response.status} cargando empresas`
+                );
+            }
+
+            const resultado = await response.json();
+
+            // IMPORTANTE: Asegurar estructura correcta
+            if (resultado.success && Array.isArray(resultado.data)) {
+                return resultado.data; // ← Retornar solo el array de datos
+            } else {
+                console.warn("⚠️ Estructura inesperada, usando array vacío");
+                return []; // ← Siempre retornar array
+            }
         } catch (error) {
-            console.error(" Error cargando empresas:", error);
+            console.error("❌ Error cargando empresas:", error);
 
             // Fallback a datos locales si hay error
             return this.getEmpresasLocales();
@@ -18,39 +29,82 @@ class DataManager {
 
     static async cargarContactosPorEmpresa(empresaId) {
         try {
-            const response = await fetch(
-                `/api/empresas/${empresaId}/contactos`
-            );
-            if (!response.ok) throw new Error("Error cargando contactos");
+            console.log(`🔍 Cargando contactos para empresa ${empresaId}...`);
 
-            const contactos = await response.json();
-            console.log(
-                `Contactos cargados para empresa ${empresaId}:`,
-                contactos
+            const response = await fetch(
+                `/api/contactos/por-empresa/${empresaId}`
             );
-            return contactos;
+
+            if (!response.ok) {
+                throw new Error(
+                    `Error HTTP ${response.status} cargando contactos`
+                );
+            }
+
+            const resultado = await response.json();
+            console.log(`📊 Contactos para empresa ${empresaId}:`, resultado);
+
+            if (resultado.success && Array.isArray(resultado.data)) {
+                return resultado.data;
+            } else {
+                console.warn(
+                    "⚠️ Estructura inesperada en contactos, usando array vacío"
+                );
+                return [];
+            }
         } catch (error) {
             console.error("❌ Error cargando contactos:", error);
             return [];
         }
     }
 
-    static async cargarActividades() {
+    static async cargarActividades(empresaId = null) {
         try {
-            const response = await fetch("/api/actividades");
-            if (!response.ok) throw new Error("Error cargando actividades");
+            console.log("🔍 Cargando actividades desde API...");
 
-            const actividades = await response.json();
-            console.log(" Actividades cargadas desde SQL Server:", actividades);
-            return actividades;
+            let url = "/api/actividades";
+            if (empresaId) {
+                url += `?empresa_id=${empresaId}`;
+                console.log(
+                    `🔍 Filtrando actividades por empresa: ${empresaId}`
+                );
+            }
+
+            console.log("📡 URL actividades:", url);
+            const response = await fetch(url);
+            console.log("📡 Estado respuesta actividades:", response.status);
+
+            if (!response.ok) {
+                throw new Error(
+                    `Error HTTP ${response.status} cargando actividades`
+                );
+            }
+
+            const resultado = await response.json();
+            console.log("📊 Resultado actividades desde API:", resultado);
+
+            // IMPORTANTE: Asegurar estructura correcta
+            if (resultado.success && Array.isArray(resultado.data)) {
+                console.log(
+                    `✅ ${resultado.data.length} actividades cargadas desde SQL Server`
+                );
+                return resultado.data; // ← Retornar solo el array de datos
+            } else {
+                console.warn(
+                    "⚠️ Estructura inesperada en actividades, usando array vacío"
+                );
+                return []; // ← Siempre retornar array
+            }
         } catch (error) {
-            console.error(" Error cargando actividades:", error);
-            return [];
+            console.error("❌ Error cargando actividades:", error);
+            return []; // ← Siempre retornar array vacío
         }
     }
 
     static async guardarEmpresa(datosEmpresa) {
         try {
+            console.log("💾 Guardando empresa:", datosEmpresa);
+
             const empresaGuardada = await AutoSaveManager.guardarEmpresa(
                 datosEmpresa
             );
@@ -61,13 +115,15 @@ class DataManager {
             }
             return null;
         } catch (error) {
-            console.error(" Error guardando empresa:", error);
+            console.error("❌ Error guardando empresa:", error);
             return null;
         }
     }
 
     static async guardarContacto(datosContacto) {
         try {
+            console.log("💾 Guardando contacto:", datosContacto);
+
             const contactoGuardado = await AutoSaveManager.guardarContacto(
                 datosContacto
             );
@@ -77,13 +133,15 @@ class DataManager {
             }
             return null;
         } catch (error) {
-            console.error("Error guardando contacto:", error);
+            console.error("❌ Error guardando contacto:", error);
             return null;
         }
     }
 
     static async guardarActividad(datosActividad) {
         try {
+            console.log("💾 Guardando actividad:", datosActividad);
+
             const actividadGuardada = await AutoSaveManager.guardarActividad(
                 datosActividad
             );
@@ -93,13 +151,14 @@ class DataManager {
             }
             return null;
         } catch (error) {
-            console.error(" Error guardando actividad:", error);
+            console.error("❌ Error guardando actividad:", error);
             return null;
         }
     }
 
-    // Datos locales de respaldo
+    // Datos locales de respaldo - ACTUALIZADO
     static getEmpresasLocales() {
+        console.log("🔄 Cargando empresas locales de respaldo...");
         return [
             {
                 id: 1,
@@ -192,28 +251,23 @@ class DataManager {
             const existentes = JSON.parse(localStorage.getItem(key) || "[]");
             existentes.push(datos);
             localStorage.setItem(key, JSON.stringify(existentes));
+            console.log(`✅ Datos guardados en localStorage (${tipo})`);
         } catch (error) {
-            console.error("Error guardando en localStorage:", error);
-        }
-    }
-    // Métodos de utilidad para localStorage (backup)
-    static guardarEnLocalStorage(tipo, datos) {
-        try {
-            const key = `quimitech_${tipo}_backup`;
-            const existentes = JSON.parse(localStorage.getItem(key) || "[]");
-            existentes.push(datos);
-            localStorage.setItem(key, JSON.stringify(existentes));
-        } catch (error) {
-            console.error("Error guardando en localStorage:", error);
+            console.error("❌ Error guardando en localStorage:", error);
         }
     }
 
     static cargarDesdeLocalStorage(tipo) {
         try {
             const key = `quimitech_${tipo}_backup`;
-            return JSON.parse(localStorage.getItem(key) || "[]");
+            const datos = JSON.parse(localStorage.getItem(key) || "[]");
+            console.log(
+                `📊 Datos cargados desde localStorage (${tipo}):`,
+                datos.length
+            );
+            return datos;
         } catch (error) {
-            console.error("Error cargando desde localStorage:", error);
+            console.error("❌ Error cargando desde localStorage:", error);
             return [];
         }
     }
@@ -221,11 +275,17 @@ class DataManager {
     // Migrar datos locales a SQL Server (una sola vez)
     static async migrarDatosLocales() {
         try {
+            console.log(
+                "🚀 Iniciando migración de datos locales a SQL Server..."
+            );
+
             const empresasLocales = this.getEmpresasLocales();
             let empresasMigradas = 0;
             let contactosMigrados = 0;
 
             for (const empresa of empresasLocales) {
+                console.log(`📦 Migrando empresa: ${empresa.nombre}`);
+
                 // Guardar empresa
                 const empresaGuardada = await this.guardarEmpresa({
                     nombre: empresa.nombre,
@@ -238,6 +298,9 @@ class DataManager {
                 if (empresaGuardada && empresa.areas_contacto) {
                     // Guardar contactos de la empresa
                     for (const contacto of empresa.areas_contacto) {
+                        console.log(
+                            `📋 Migrando contacto: ${contacto.encargado}`
+                        );
                         await this.guardarContacto({
                             empresa_id: empresaGuardada.id,
                             area: contacto.area,
@@ -254,7 +317,7 @@ class DataManager {
             }
 
             console.log(
-                ` Migración completada: ${empresasMigradas} empresas, ${contactosMigrados} contactos`
+                `✅ Migración completada: ${empresasMigradas} empresas, ${contactosMigrados} contactos`
             );
             return { empresas: empresasMigradas, contactos: contactosMigrados };
         } catch (error) {
@@ -266,32 +329,40 @@ class DataManager {
 
 // Función para inicializar datos (ejecutar al cargar la app)
 async function inicializarDatos() {
-    console.log("Inicializando datos...");
+    console.log("🚀 Inicializando sistema de datos...");
 
-    // Verificar si ya tenemos datos en SQL Server
-    const empresas = await DataManager.cargarEmpresas();
+    try {
+        // Verificar si ya tenemos datos en SQL Server
+        const empresas = await DataManager.cargarEmpresas();
 
-    if (empresas.length === 0) {
-        console.log("📦 No hay datos en SQL Server, migrando datos locales...");
-        await DataManager.migrarDatosLocales();
-    } else {
-        console.log("✅ Datos ya existen en SQL Server");
+        if (!empresas || empresas.length === 0) {
+            console.log(
+                "📊 No hay datos en SQL Server, migrando datos locales..."
+            );
+            await DataManager.migrarDatosLocales();
+        } else {
+            console.log(
+                `✅ ${empresas.length} empresas encontradas en SQL Server`
+            );
+        }
+
+        return empresas;
+    } catch (error) {
+        console.error("❌ Error inicializando datos:", error);
+        return DataManager.getEmpresasLocales();
     }
-
-    return empresas;
 }
 
-// Función para guardar cambios (reemplaza la función original)
+// Función para guardar cambios en empresa
 async function guardarCambiosEmpresa(empresaId, datosActualizados) {
     try {
         console.log(
-            "💾 Guardando empresa en SQL Server:",
-            empresaId,
+            `💾 Guardando cambios empresa ${empresaId}:`,
             datosActualizados
         );
 
         // Si es una empresa nueva (sin ID)
-        if (!empresaId || empresaId.startsWith("empresa")) {
+        if (!empresaId || empresaId.toString().startsWith("empresa")) {
             // Crear nueva empresa
             const nuevaEmpresa = await DataManager.guardarEmpresa({
                 nombre: datosActualizados.nombre,
@@ -340,7 +411,7 @@ async function guardarCambiosEmpresa(empresaId, datosActualizados) {
             return result.success;
         }
     } catch (error) {
-        console.error("❌ Error guardando cambios:", error);
+        console.error("❌ Error guardando cambios empresa:", error);
         return false;
     }
 }
@@ -348,9 +419,9 @@ async function guardarCambiosEmpresa(empresaId, datosActualizados) {
 // Función para guardar cambios en contacto
 async function guardarCambiosContacto(contactoId, datosContacto) {
     try {
-        console.log("💾 Guardando contacto:", contactoId, datosContacto);
+        console.log(`💾 Guardando contacto ${contactoId}:`, datosContacto);
 
-        if (!contactoId || contactoId.startsWith("temp")) {
+        if (!contactoId || contactoId.toString().startsWith("temp")) {
             // Nuevo contacto
             const resultado = await DataManager.guardarContacto(datosContacto);
             return resultado ? true : false;
@@ -363,15 +434,30 @@ async function guardarCambiosContacto(contactoId, datosContacto) {
             return resultado;
         }
     } catch (error) {
-        console.error("Error guardando contacto:", error);
+        console.error("❌ Error guardando contacto:", error);
         return false;
+    }
+}
+
+// Función para cargar actividades específicas
+async function cargarActividadesParaEmpresa(empresaId = null) {
+    try {
+        console.log(
+            `🔍 Cargando actividades para empresa: ${empresaId || "Todas"}`
+        );
+        return await DataManager.cargarActividades(empresaId);
+    } catch (error) {
+        console.error("❌ Error cargando actividades para empresa:", error);
+        return [];
     }
 }
 
 // Inicializar cuando se carga el script
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("🚀 DataManager cargado - Listo para usar SQL Server");
-
-    // Opcional: Inicializar datos automáticamente
-    // inicializarDatos();
+    // Hacer DataManager disponible globalmente
+    window.DataManager = DataManager;
+    window.inicializarDatos = inicializarDatos;
+    window.guardarCambiosEmpresa = guardarCambiosEmpresa;
+    window.guardarCambiosContacto = guardarCambiosContacto;
+    window.cargarActividadesParaEmpresa = cargarActividadesParaEmpresa;
 });

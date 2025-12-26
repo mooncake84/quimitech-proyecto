@@ -19,17 +19,14 @@ class AutoSaveManager {
             const result = await response.json();
 
             if (result.success) {
-                console.log(
-                    "✅ Empresa guardada en SQL Server:",
-                    result.empresa
-                );
+                console.log(" Empresa guardada en SQL Server:", result.empresa);
                 return result.empresa;
             } else {
-                console.error("❌ Error guardando empresa:", result.message);
+                console.error(" Error guardando empresa:", result.message);
                 return null;
             }
         } catch (error) {
-            console.error("❌ Error de conexión:", error);
+            console.error(" Error de conexión:", error);
             return null;
         }
     }
@@ -55,16 +52,16 @@ class AutoSaveManager {
 
             if (result.success) {
                 console.log(
-                    "✅ Contacto guardado en SQL Server:",
+                    " Contacto guardado en SQL Server:",
                     result.contacto
                 );
                 return result.contacto;
             } else {
-                console.error("❌ Error guardando contacto:", result.message);
+                console.error(" Error guardando contacto:", result.message);
                 return null;
             }
         } catch (error) {
-            console.error("❌ Error de conexión:", error);
+            console.error(" Error de conexión:", error);
             return null;
         }
     }
@@ -90,16 +87,16 @@ class AutoSaveManager {
 
             if (result.success) {
                 console.log(
-                    "✅ Actividad guardada en SQL Server:",
+                    "Actividad guardada en SQL Server:",
                     result.actividad
                 );
                 return result.actividad;
             } else {
-                console.error("❌ Error guardando actividad:", result.message);
+                console.error(" Error guardando actividad:", result.message);
                 return null;
             }
         } catch (error) {
-            console.error("❌ Error de conexión:", error);
+            console.error(" Error de conexión:", error);
             return null;
         }
     }
@@ -125,17 +122,14 @@ class AutoSaveManager {
             const result = await response.json();
 
             if (result.success) {
-                console.log("✅ Contacto actualizado en SQL Server");
+                console.log(" Contacto actualizado en SQL Server");
                 return true;
             } else {
-                console.error(
-                    "❌ Error actualizando contacto:",
-                    result.message
-                );
+                console.error(" Error actualizando contacto:", result.message);
                 return false;
             }
         } catch (error) {
-            console.error("❌ Error de conexión:", error);
+            console.error(" Error de conexión:", error);
             return false;
         }
     }

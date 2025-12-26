@@ -1,11 +1,14 @@
-// rastros_script.js - ACTUALIZADO CON CONVERSIÓN DE IDs
+// rastros_script.js - VERSIÓN COMPLETA Y CORREGIDA
 document.addEventListener("DOMContentLoaded", function () {
+    // Elementos del DOM
     const selectCambioEmpresa = document.getElementById(
         "select-cambio-empresa"
     );
     const nombreEmpresaActual = document.getElementById(
         "nombre-empresa-actual"
     );
+    const btnGestionClientes = document.getElementById("btn-gestion-clientes");
+    const btnOpcion1 = document.getElementById("btn-opcion1");
 
     // Variable para almacenar empresas cargadas
     let empresasCargadas = [];
@@ -14,221 +17,355 @@ document.addEventListener("DOMContentLoaded", function () {
      * Convertir IDs antiguos ("empresa1") a nuevos (1)
      */
     function convertirIdEmpresa(id) {
-        // Si es un ID antiguo como "empresa1", convertirlo a "1"
-        if (typeof id === "string" && id.startsWith("empresa")) {
-            const nuevoId = id.replace("empresa", "");
-            console.log(`🔄 Convirtiendo ID: ${id} -> ${nuevoId}`);
-            return nuevoId;
+        if (!id) return "1";
+
+        const idStr = id.toString().trim();
+
+        // Si es vacío
+        if (idStr === "") {
+            console.warn("⚠️ ID vacío recibido");
+            return "1";
         }
-        return id.toString();
+
+        // Convertir "empresaX" a "X"
+        if (idStr.toLowerCase().startsWith("empresa")) {
+            const nuevoId = idStr.replace(/empresa/i, "");
+            console.log(
+                `🔄 Convirtiendo ID formato antiguo: ${idStr} -> ${nuevoId}`
+            );
+            return nuevoId || "1";
+        }
+
+        // Validar que sea numérico
+        if (!/^\d+$/.test(idStr)) {
+            console.warn(
+                `⚠️ ID no numérico recibido: ${idStr}, usando 1 por defecto`
+            );
+            return "1";
+        }
+
+        return idStr;
     }
 
     /**
-     * Cargar empresas desde SQL Server
+     * Cargar empresas desde API
      */
     async function cargarEmpresas() {
         try {
-            console.log("🔍 Cargando empresas desde SQL Server...");
+            // Usar DataManager que ya funciona
+            const resultado = await DataManager.cargarEmpresas();
 
-            empresasCargadas = await DataManager.cargarEmpresas();
+            // Procesar respuesta
+            if (resultado.success && Array.isArray(resultado.data)) {
+                empresasCargadas = resultado.data;
+                console.log(
+                    `✅ ${empresasCargadas.length} empresas cargadas desde API`
+                );
+            } else if (Array.isArray(resultado)) {
+                empresasCargadas = resultado;
+            } else {
+                console.warn("⚠️ Formato inesperado, usando fallback");
+                empresasCargadas = DataManager.getEmpresasLocales() || [];
+            }
 
             if (!empresasCargadas || empresasCargadas.length === 0) {
                 throw new Error("No se pudieron cargar las empresas");
             }
 
-            console.log("✅ Empresas cargadas:", empresasCargadas);
             return empresasCargadas;
         } catch (error) {
             console.error("❌ Error cargando empresas:", error);
-
-            // Fallback a datos locales
-            empresasCargadas = DataManager.getEmpresasLocales();
-            console.warn("🔄 Usando datos locales como fallback");
+            empresasCargadas = DataManager.getEmpresasLocales() || [];
             return empresasCargadas;
         }
     }
 
     /**
-     * Actualiza el nombre de la empresa en el header y guarda el ID.
-     * @param {string|number} companyId - El ID de la empresa.
+     * Actualizar empresa seleccionada
      */
-    async function actualizarEmpresaVista(companyId) {
+    async function actualizarEmpresaVista(empresaId) {
         try {
-            // Si no tenemos empresas cargadas, cargarlas primero
-            if (empresasCargadas.length === 0) {
+            if (!empresasCargadas || empresasCargadas.length === 0) {
                 await cargarEmpresas();
             }
 
-            // Convertir ID si es necesario
-            const companyIdConvertido = convertirIdEmpresa(companyId);
-
-            // Buscar la empresa
             const empresa = empresasCargadas.find(
-                (emp) => emp.id.toString() === companyIdConvertido.toString()
+                (e) => e && e.id && e.id.toString() === empresaId.toString()
             );
 
             if (!empresa) {
-                // Si no encuentra, usar la primera empresa disponible
-                if (empresasCargadas.length > 0) {
-                    const primeraEmpresa = empresasCargadas[0];
-                    console.warn(
-                        `⚠️ Empresa ${companyId} no encontrada, usando ${primeraEmpresa.nombre} como fallback`
-                    );
+                console.warn(`⚠️ Empresa ${empresaId} no encontrada`);
 
-                    nombreEmpresaActual.textContent = `Empresa Actual: ${primeraEmpresa.nombre}`;
-                    if (selectCambioEmpresa) {
-                        selectCambioEmpresa.value = primeraEmpresa.id;
+                // Usar primera empresa
+                if (empresasCargadas.length > 0) {
+                    const primera = empresasCargadas[0];
+
+                    if (nombreEmpresaActual) {
+                        nombreEmpresaActual.textContent = `Empresa Actual: ${primera.nombre}`;
                     }
+
+                    if (selectCambioEmpresa) {
+                        selectCambioEmpresa.value = primera.id;
+                    }
+
                     localStorage.setItem(
                         "selectedCompany",
-                        primeraEmpresa.id.toString()
+                        primera.id.toString()
                     );
                     return;
                 }
-                throw new Error(`Empresa con ID ${companyId} no encontrada`);
+
+                throw new Error(`Empresa con ID ${empresaId} no encontrada`);
             }
 
-            const nombreEmpresa = empresa.nombre;
-            nombreEmpresaActual.textContent = `Empresa Actual: ${nombreEmpresa}`;
+            if (nombreEmpresaActual) {
+                nombreEmpresaActual.textContent = `Empresa Actual: ${empresa.nombre}`;
+            }
 
-            // Actualizar selector si existe
             if (selectCambioEmpresa) {
                 selectCambioEmpresa.value = empresa.id;
             }
 
-            // Guardar el ID convertido en localStorage
             localStorage.setItem("selectedCompany", empresa.id.toString());
-
-            console.log(
-                `🏢 Empresa actualizada: ${nombreEmpresa} (ID: ${empresa.id})`
-            );
         } catch (error) {
-            console.error("Error actualizando vista de empresa:", error);
-
-            if (typeof errorManager !== "undefined") {
-                errorManager.mostrarError("Error al cambiar de empresa");
-            }
-
-            // Fallback: usar primera empresa disponible
-            if (empresasCargadas.length > 0) {
-                const primeraEmpresa = empresasCargadas[0];
-                nombreEmpresaActual.textContent = `Empresa Actual: ${primeraEmpresa.nombre}`;
-                localStorage.setItem(
-                    "selectedCompany",
-                    primeraEmpresa.id.toString()
-                );
+            console.error("Error actualizando empresa:", error);
+            if (nombreEmpresaActual) {
+                nombreEmpresaActual.textContent = "Error cargando empresa";
             }
         }
     }
 
     /**
-     * Llenar el selector de empresas
+     * Llenar selector de empresas
      */
     function llenarSelectorEmpresas() {
-        if (!selectCambioEmpresa || empresasCargadas.length === 0) return;
+        if (!selectCambioEmpresa) return;
 
-        // Limpiar selector
+        if (!empresasCargadas || !Array.isArray(empresasCargadas)) {
+            selectCambioEmpresa.innerHTML =
+                '<option value="">Error cargando empresas</option>';
+            return;
+        }
+
         selectCambioEmpresa.innerHTML = "";
 
-        // Agregar opciones
+        // Opción por defecto
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "Seleccione una empresa";
+        defaultOption.disabled = true;
+        selectCambioEmpresa.appendChild(defaultOption);
+
+        // Opciones de empresas
         empresasCargadas.forEach((empresa) => {
+            if (!empresa || !empresa.id || !empresa.nombre) return;
+
             const option = document.createElement("option");
             option.value = empresa.id;
             option.textContent = empresa.nombre;
+
+            // Agregar contacto si existe
+            if (empresa.contacto) {
+                option.textContent += ` - ${empresa.contacto}`;
+            }
+
             selectCambioEmpresa.appendChild(option);
         });
-
-        console.log("✅ Selector de empresas actualizado");
     }
 
-    // Función para abrir información general con la empresa actual
-    window.abrirInformacionGeneral = function () {
+    /**
+     * Obtener empresa inicial
+     */
+    function obtenerEmpresaInicial() {
+        const stored = localStorage.getItem("selectedCompany");
+
+        if (stored && empresasCargadas && empresasCargadas.length > 0) {
+            const empresaExiste = empresasCargadas.some(
+                (e) => e && e.id && e.id.toString() === stored.toString()
+            );
+
+            if (empresaExiste) {
+                return stored;
+            }
+        }
+
+        // Usar primera empresa disponible
+        if (empresasCargadas && empresasCargadas.length > 0) {
+            const primera = empresasCargadas[0];
+            if (primera && primera.id) {
+                return primera.id.toString();
+            }
+        }
+
+        return "1";
+    }
+
+    /**
+     * Función para abrir información general
+     */
+    function abrirInformacionGeneral() {
         try {
             let selectedCompany =
                 localStorage.getItem("selectedCompany") || "1";
 
-            // Convertir ID si es necesario
-            selectedCompany = convertirIdEmpresa(selectedCompany);
-
-            // Validar que la empresa existe
-            if (empresasCargadas.length === 0) {
+            if (!empresasCargadas || empresasCargadas.length === 0) {
                 throw new Error("No hay empresas cargadas");
             }
 
             const empresaExiste = empresasCargadas.some(
-                (emp) => emp.id.toString() === selectedCompany.toString()
+                (e) =>
+                    e && e.id && e.id.toString() === selectedCompany.toString()
             );
 
             if (!empresaExiste) {
                 throw new Error(`Empresa ${selectedCompany} no encontrada`);
             }
 
-            // Usar URL de Laravel
             window.location.href = `/info-empresa?companyId=${selectedCompany}`;
         } catch (error) {
-            console.error("Error abriendo información general:", error);
-
-            if (typeof errorManager !== "undefined") {
-                errorManager.mostrarError(
-                    "Error al abrir información de la empresa"
-                );
-            }
+            console.error("Error:", error);
+            mostrarNotificacion(`Error: ${error.message}`, "error");
         }
-    };
-
-    /**
-     * Obtener empresa inicial considerando conversión de IDs
-     */
-    function obtenerEmpresaInicial() {
-        const storedCompany = localStorage.getItem("selectedCompany");
-
-        if (storedCompany) {
-            // Convertir ID antiguo si es necesario
-            return convertirIdEmpresa(storedCompany);
-        }
-
-        // Si no hay empresa guardada, usar la primera disponible
-        if (empresasCargadas.length > 0) {
-            return empresasCargadas[0].id.toString();
-        }
-
-        return "1"; // Fallback
     }
 
     /**
-     * Inicialización de la página
+     * Función para abrir gestión de clientes
+     */
+    function abrirGestionClientes() {
+        try {
+            console.log("📋 Abriendo gestión de clientes...");
+            window.location.href = "/clientes";
+        } catch (error) {
+            console.error("Error:", error);
+            mostrarNotificacion("Error al abrir gestión de clientes", "error");
+        }
+    }
+
+    /**
+     * Mostrar notificación temporal
+     */
+    function mostrarNotificacion(mensaje, tipo = "info") {
+        console.log(`${tipo.toUpperCase()}: ${mensaje}`);
+
+        // Eliminar notificación anterior si existe
+        const notifAnterior = document.querySelector(".notificacion-rastros");
+        if (notifAnterior) notifAnterior.remove();
+
+        const notificacion = document.createElement("div");
+        notificacion.className = `notificacion-rastros notificacion-${tipo}`;
+        notificacion.textContent = mensaje;
+
+        notificacion.style.cssText = `
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: slideInRight 0.3s ease;
+        `;
+
+        if (tipo === "success") {
+            notificacion.style.background =
+                "linear-gradient(135deg, #38a169, #2f855a)";
+        } else if (tipo === "error") {
+            notificacion.style.background =
+                "linear-gradient(135deg, #e53e3e, #c53030)";
+        } else if (tipo === "warning") {
+            notificacion.style.background =
+                "linear-gradient(135deg, #d69e2e, #b7791f)";
+        } else {
+            notificacion.style.background =
+                "linear-gradient(135deg, #667eea, #764ba2)";
+        }
+
+        document.body.appendChild(notificacion);
+
+        setTimeout(() => {
+            if (notificacion.parentNode) {
+                document.body.removeChild(notificacion);
+            }
+        }, 3000);
+    }
+
+    /**
+     * Configurar event listeners
+     */
+    function configurarEventListeners() {
+        // Botón de gestión de clientes
+        if (btnGestionClientes) {
+            btnGestionClientes.addEventListener("click", abrirGestionClientes);
+        }
+
+        // Botón de información general
+        if (btnOpcion1) {
+            btnOpcion1.addEventListener("click", abrirInformacionGeneral);
+        }
+
+        // Selector de cambio de empresa
+        if (selectCambioEmpresa) {
+            selectCambioEmpresa.addEventListener("change", function () {
+                console.log("🔄 Cambiando empresa a:", this.value);
+                if (this.value) {
+                    actualizarEmpresaVista(this.value);
+                }
+            });
+        }
+    }
+
+    /**
+     * Inicialización
      */
     async function inicializar() {
         try {
-            console.log("🚀 Inicializando página rastros...");
-
-            // Cargar empresas
+            // 1. Cargar empresas
             await cargarEmpresas();
 
-            // Llenar selector
+            // 2. Llenar selector
             llenarSelectorEmpresas();
 
-            // Establecer empresa inicial con conversión
+            // 3. Establecer empresa inicial
             const empresaInicial = obtenerEmpresaInicial();
-
             await actualizarEmpresaVista(empresaInicial);
 
-            console.log("✅ Página rastros inicializada correctamente");
-        } catch (error) {
-            console.error("❌ Error en inicialización:", error);
+            // 4. Configurar event listeners
+            configurarEventListeners();
 
-            if (typeof errorManager !== "undefined") {
-                errorManager.mostrarError("Error al inicializar la aplicación");
-            }
+            // 5. Hacer funciones disponibles globalmente
+            window.abrirGestionClientes = abrirGestionClientes;
+            window.abrirInformacionGeneral = abrirInformacionGeneral;
+        } catch (error) {
+            mostrarNotificacion("Error al cargar el sistema", "error");
         }
     }
 
-    // Evento para cambiar la empresa en el selector del header
-    if (selectCambioEmpresa) {
-        selectCambioEmpresa.addEventListener("change", function () {
-            actualizarEmpresaVista(selectCambioEmpresa.value);
-        });
-    }
+    // Agregar estilos CSS para animaciones
+    const estiloNotificaciones = document.createElement("style");
+    estiloNotificaciones.textContent = `
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(estiloNotificaciones);
 
     // Inicializar la página
     inicializar();

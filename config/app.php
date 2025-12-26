@@ -65,7 +65,8 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+  // config/app.php
+'timezone' => 'America/Mexico_City', // Ajusta según tu ubicación
 
     /*
     |--------------------------------------------------------------------------

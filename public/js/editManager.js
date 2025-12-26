@@ -1,578 +1,677 @@
-// editManager.js - VERSIÓN CORREGIDA
-
 const editManager = {
     modoEdicion: false,
     companyIdActual: null,
     tablaOriginal: null,
+    cambiosPendientes: new Map(),
 
-    // Inicializar sistema de edición
+    API_URLS: {
+        contactos: "/api/contactos",
+        contactosPorEmpresa: (empresaId) =>
+            `/api/contactos/por-empresa/${empresaId}`,
+    },
+
     inicializar: function () {
         try {
-            if (typeof errorManager === "undefined") {
-                console.warn(
-                    "errorManager no está disponible, creando uno básico"
-                );
-                window.errorManager = {
-                    mostrarError: function (
-                        msg,
-                        tipo = "error",
-                        tiempo = 5000
-                    ) {
-                        console[tipo === "error" ? "error" : "log"](msg);
-                        alert(msg);
-                    },
-                };
-            }
-
             this.companyIdActual = this.obtenerCompanyIdActual();
             this.crearBotonesEdicion();
             this.agregarEventListeners();
-
-            console.log("✅ editManager inicializado correctamente");
             return true;
         } catch (error) {
-            console.error("❌ Error inicializando editManager:", error);
             return false;
         }
     },
 
-    // Obtener ID de empresa actual
     obtenerCompanyIdActual: function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        let companyId =
-            urlParams.get("companyId") ||
-            localStorage.getItem("selectedCompany") ||
-            "1";
-
-        if (typeof companyId === "string" && companyId.startsWith("empresa")) {
-            return companyId.replace("empresa", "");
+        if (window.infoEmpresaManager && window.infoEmpresaManager.empresaId) {
+            return window.infoEmpresaManager.empresaId;
         }
-        return companyId;
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let companyId = urlParams.get("companyId") || "1";
+
+        if (companyId.startsWith("empresa")) {
+            companyId = companyId.replace("empresa", "");
+        }
+
+        return companyId || "1";
     },
 
-    // Función para crear botones de edición
     crearBotonesEdicion: function () {
         const seccionTabla = document.querySelector(".seccion-tabla h3");
-        if (!seccionTabla) {
-            console.warn(
-                "No se encontró la sección de tabla para agregar botones de edición"
-            );
-            return;
-        }
+        if (!seccionTabla) return;
 
-        // Eliminar botones existentes para evitar duplicados
-        const botonesExistentes = document.querySelector(
+        const botonesExistentes = seccionTabla.querySelector(
             ".botones-edicion-container"
         );
-        if (botonesExistentes) {
-            botonesExistentes.remove();
-        }
+        if (botonesExistentes) botonesExistentes.remove();
 
         const botonesContainer = document.createElement("div");
         botonesContainer.className = "botones-edicion-container";
+        botonesContainer.style.cssText = `
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+            align-items: center;
+        `;
 
-        // Botón activar edición
-        const btnActivarEdicion = document.createElement("button");
-        btnActivarEdicion.id = "btn-activar-edicion";
-        btnActivarEdicion.innerHTML = "✏️ Editar Tabla";
-        btnActivarEdicion.className = "btn-edicion";
-        btnActivarEdicion.title =
-            "Activar modo edición para modificar contactos";
+        const btnActivar = document.createElement("button");
+        btnActivar.id = "btn-activar-edicion";
+        btnActivar.innerHTML = "✏️ <span>Editar Tabla</span>";
+        btnActivar.className = "btn-edicion";
+        btnActivar.title = "Activar modo edición para modificar contactos";
+        botonesContainer.appendChild(btnActivar);
 
-        // Botón guardar cambios
-        const btnGuardarCambios = document.createElement("button");
-        btnGuardarCambios.id = "btn-guardar-cambios";
-        btnGuardarCambios.innerHTML = "💾 Guardar";
-        btnGuardarCambios.className = "btn-edicion";
-        btnGuardarCambios.style.display = "none";
-        btnGuardarCambios.title =
-            "Guardar todos los cambios en la base de datos";
+        const btnGuardar = document.createElement("button");
+        btnGuardar.id = "btn-guardar-cambios";
+        btnGuardar.innerHTML = "💾 <span>Guardar Cambios</span>";
+        btnGuardar.className = "btn-edicion";
+        btnGuardar.title = "Guardar todos los cambios";
+        btnGuardar.style.display = "none";
+        botonesContainer.appendChild(btnGuardar);
 
-        // Botón cancelar edición
-        const btnCancelarEdicion = document.createElement("button");
-        btnCancelarEdicion.id = "btn-cancelar-edicion";
-        btnCancelarEdicion.innerHTML = "❌ Cancelar";
-        btnCancelarEdicion.className = "btn-edicion";
-        btnCancelarEdicion.style.display = "none";
-        btnCancelarEdicion.title = "Cancelar edición y descartar cambios";
+        const btnCancelar = document.createElement("button");
+        btnCancelar.id = "btn-cancelar-edicion";
+        btnCancelar.innerHTML = "❌ <span>Cancelar</span>";
+        btnCancelar.className = "btn-edicion";
+        btnCancelar.title = "Cancelar edición";
+        btnCancelar.style.display = "none";
+        botonesContainer.appendChild(btnCancelar);
 
-        // Agregar botones al contenedor
-        botonesContainer.appendChild(btnActivarEdicion);
-        botonesContainer.appendChild(btnGuardarCambios);
-        botonesContainer.appendChild(btnCancelarEdicion);
+        const btnNuevaFila = document.createElement("button");
+        btnNuevaFila.id = "btn-nueva-fila";
+        btnNuevaFila.innerHTML = "➕ <span>Nueva Fila</span>";
+        btnNuevaFila.className = "btn-edicion";
+        btnNuevaFila.title = "Agregar nuevo contacto";
+        btnNuevaFila.style.display = "none";
+        botonesContainer.appendChild(btnNuevaFila);
 
-        seccionTabla.style.display = "flex";
-        seccionTabla.style.alignItems = "center";
-        seccionTabla.style.justifyContent = "space-between";
-        seccionTabla.style.flexWrap = "wrap";
-        seccionTabla.style.gap = "15px";
-        seccionTabla.style.width = "100%";
-
+        seccionTabla.style.cssText = `
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+        `;
         seccionTabla.appendChild(botonesContainer);
     },
 
-    // Agregar event listeners
     agregarEventListeners: function () {
-        const self = this;
-
-        document.addEventListener("click", function (e) {
-            if (e.target.id === "btn-activar-edicion") {
-                self.activarModoEdicion();
-            } else if (e.target.id === "btn-guardar-cambios") {
-                self.guardarCambios();
-            } else if (e.target.id === "btn-cancelar-edicion") {
-                self.cancelarEdicion();
-            } else if (e.target.classList.contains("btn-eliminar-fila")) {
-                self.eliminarFila(e.target);
-            } else if (e.target.id === "btn-nueva-fila") {
-                self.agregarNuevaFila();
+        document.addEventListener("click", (e) => this.manejarClick(e));
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && this.modoEdicion) {
+                this.cancelarEdicion();
             }
         });
     },
 
-    // Activar modo edición
+    manejarClick: function (e) {
+        if (
+            e.target.id === "btn-activar-edicion" ||
+            e.target.closest("#btn-activar-edicion")
+        ) {
+            this.activarModoEdicion();
+        } else if (
+            e.target.id === "btn-guardar-cambios" ||
+            e.target.closest("#btn-guardar-cambios")
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.guardarCambios();
+        } else if (
+            e.target.id === "btn-cancelar-edicion" ||
+            e.target.closest("#btn-cancelar-edicion")
+        ) {
+            this.cancelarEdicion();
+        } else if (
+            e.target.id === "btn-nueva-fila" ||
+            e.target.closest("#btn-nueva-fila")
+        ) {
+            this.agregarNuevaFila();
+        } else if (
+            e.target.classList.contains("btn-eliminar-fila") ||
+            e.target.closest(".btn-eliminar-fila")
+        ) {
+            if (this.modoEdicion) {
+                this.eliminarFila(
+                    e.target.closest(".btn-eliminar-fila") || e.target
+                );
+            }
+        }
+    },
+
     activarModoEdicion: function () {
         if (this.modoEdicion) {
-            errorManager.mostrarError("Ya estás en modo edición", "warning");
+            alert("Ya estás en modo edición");
             return;
         }
 
-        console.log("✏️ Activando modo edición...");
+        const tbody = document.getElementById("cuerpo-tabla-contactos");
+        if (!tbody) {
+            alert("No se encontró la tabla de contactos");
+            return;
+        }
 
-        // Guardar estado original de la tabla
-        this.tablaOriginal = document.getElementById(
-            "cuerpo-tabla-contactos"
-        ).innerHTML;
-
+        this.tablaOriginal = tbody.innerHTML;
         this.modoEdicion = true;
+        this.cambiosPendientes.clear();
+
         this.habilitarEdicionTabla();
         this.mostrarBotonesEdicion();
+        this.mostrarIndicadorEdicion();
 
-        errorManager.mostrarError(
-            "Modo edición activado. Haz doble clic en cualquier celda para editar.",
-            "success",
-            3000
+        alert(
+            "Modo edición activado. Ahora puedes editar y eliminar contactos."
         );
     },
 
-    // CORREGIR ESTA FUNCIÓN EN editManager.js
-
-    // Habilitar edición de la tabla - VERSIÓN CORREGIDA
     habilitarEdicionTabla: function () {
         const tbody = document.getElementById("cuerpo-tabla-contactos");
+        if (!tbody) return;
+
         const filas = tbody.querySelectorAll("tr");
 
-        filas.forEach((fila, index) => {
-            // Hacer fila editable con doble clic
-            fila.setAttribute("data-fila-index", index);
-
-            // VERIFICAR SI YA EXISTE LA COLUMNA DE ACCIONES
-            let celdaAcciones = fila.querySelector(".acciones-edicion");
-
-            if (!celdaAcciones) {
-                // Crear columna de acciones si no existe
-                celdaAcciones = document.createElement("td");
-                celdaAcciones.className = "acciones-edicion";
-                fila.appendChild(celdaAcciones);
-            }
-
-            // AGREGAR/MANTENER BOTÓN ELIMINAR
-            celdaAcciones.innerHTML =
-                '<button class="btn-eliminar-fila" title="Eliminar fila">🗑️</button>';
-
-            // Hacer celdas editables (excluyendo la columna de acciones)
+        filas.forEach((fila) => {
             const celdas = fila.querySelectorAll("td:not(.acciones-edicion)");
-            celdas.forEach((celda, celdaIndex) => {
+            celdas.forEach((celda) => {
+                const valorOriginal = celda.textContent.trim();
                 celda.setAttribute("contenteditable", "true");
-                celda.style.border = "1px dashed #ccc";
-                celda.style.padding = "8px";
+                celda.setAttribute("data-valor-original", valorOriginal);
+                celda.style.cssText = `
+                    border: 1px dashed #adb5bd;
+                    padding: 8px;
+                    min-height: 28px;
+                    outline: none;
+                    background-color: #f8f9fa;
+                `;
 
-                // Guardar valor original
-                if (!celda.getAttribute("data-valor-original")) {
-                    celda.setAttribute(
-                        "data-valor-original",
-                        celda.textContent.trim()
-                    );
-                }
+                celda.addEventListener("input", (e) =>
+                    this.marcarCambio(e.target)
+                );
+                celda.addEventListener(
+                    "focus",
+                    (e) => (e.target.style.backgroundColor = "#e3f2fd")
+                );
+                celda.addEventListener("blur", (e) => {
+                    if (
+                        e.target.textContent.trim() ===
+                        e.target.getAttribute("data-valor-original")
+                    ) {
+                        e.target.style.backgroundColor = "#f8f9fa";
+                    }
+                });
             });
+
+            const accionesCell = fila.querySelector(".acciones-edicion");
+            if (accionesCell) {
+                accionesCell.style.display = "table-cell";
+
+                const btnEliminar =
+                    accionesCell.querySelector(".btn-eliminar-fila");
+                if (btnEliminar) {
+                    btnEliminar.style.display = "inline-block";
+                    btnEliminar.style.opacity = "1";
+                    btnEliminar.style.pointerEvents = "auto";
+                } else {
+                    const nuevoBtn = document.createElement("button");
+                    nuevoBtn.className = "btn-eliminar-fila";
+                    nuevoBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                    nuevoBtn.title = "Eliminar contacto";
+                    nuevoBtn.onclick = () => this.eliminarFila(nuevoBtn);
+                    accionesCell.appendChild(nuevoBtn);
+                }
+            }
         });
 
-        // FORZAR MOSTRAR ACCIONES CON CSS
         document.body.classList.add("modo-edicion-activo");
     },
 
-    // Función para mostrar botones de edición - VERSIÓN MEJORADA
+    marcarCambio: function (celda) {
+        const valorOriginal = celda.getAttribute("data-valor-original");
+        const valorActual = celda.textContent.trim();
+
+        if (valorOriginal !== valorActual) {
+            celda.style.backgroundColor = "#fff3cd";
+            celda.style.borderColor = "#ffc107";
+        } else {
+            celda.style.backgroundColor = "#f8f9fa";
+            celda.style.borderColor = "#adb5bd";
+        }
+    },
+
     mostrarBotonesEdicion: function () {
-        // Ocultar botón de activar edición
         document.getElementById("btn-activar-edicion").style.display = "none";
+        document.getElementById("btn-guardar-cambios").style.display = "flex";
+        document.getElementById("btn-cancelar-edicion").style.display = "flex";
+        document.getElementById("btn-nueva-fila").style.display = "flex";
+    },
 
-        // Mostrar botones de acción
-        document.getElementById("btn-guardar-cambios").style.display =
-            "inline-block";
-        document.getElementById("btn-cancelar-edicion").style.display =
-            "inline-block";
+    mostrarIndicadorEdicion: function () {
+        const existente = document.getElementById("indicador-edicion");
+        if (existente) existente.remove();
 
-        // Mostrar botón de NUEVA FILA
-        const btnNuevaFila = document.getElementById("btn-nueva-fila");
-        if (btnNuevaFila) {
-            btnNuevaFila.style.display = "inline-block";
-        }
-
-        // FORZAR MOSTRAR COLUMNA DE ACCIONES EN TODAS LAS FILAS
-        const accionesCells = document.querySelectorAll(".acciones-edicion");
-        accionesCells.forEach((cell) => {
-            cell.style.display = "table-cell";
-            cell.style.visibility = "visible";
-            cell.style.opacity = "1";
-        });
-
-        // Agregar indicador visual de modo edición
         const indicador = document.createElement("div");
-        indicador.className = "modo-edicion-indicador";
-        indicador.innerHTML =
-            "✏️ MODO EDICIÓN ACTIVO - Recuerda guardar los cambios";
         indicador.id = "indicador-edicion";
+        indicador.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;">✏️</span>
+                <div>
+                    <strong>MODO EDICIÓN ACTIVO</strong><br>
+                    <small>Ahora puedes editar y eliminar contactos</small>
+                </div>
+            </div>
+        `;
+        indicador.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: pulse 1.5s infinite;
+            border-left: 4px solid #ff5722;
+        `;
+
         document.body.appendChild(indicador);
-
-        document.body.classList.add("modo-edicion-activo");
-        console.log("✅ Modo edición activado - Botones configurados");
     },
 
-    // Función para ocultar botones de edición - CORREGIDA
-    ocultarBotonesEdicion: function () {
-        // Mostrar botón de activar edición
-        document.getElementById("btn-activar-edicion").style.display =
-            "inline-block";
-
-        // Ocultar botones de acción
-        document.getElementById("btn-guardar-cambios").style.display = "none";
-        document.getElementById("btn-cancelar-edicion").style.display = "none";
-
-        // Ocultar botón de NUEVA FILA - CON VERIFICACIÓN
-        const btnNuevaFila = document.getElementById("btn-nueva-fila");
-        if (btnNuevaFila) {
-            btnNuevaFila.style.display = "none";
-        }
-
-        // Remover indicador
-        const indicador = document.getElementById("indicador-edicion");
-        if (indicador) {
-            indicador.remove();
-        }
-
-        document.body.classList.remove("modo-edicion-activo");
-        console.log("❌ Modo edición desactivado - Botones ocultos");
-    },
-
-    // Función para agregar nueva fila - VERSIÓN CORREGIDA
     agregarNuevaFila: function () {
         if (!this.modoEdicion) {
-            errorManager.mostrarError(
-                "Debes activar el modo edición primero",
-                "warning"
-            );
+            alert("Debes activar el modo edición primero");
             return;
         }
 
         const tbody = document.getElementById("cuerpo-tabla-contactos");
-        const nuevaFila = document.createElement("tr");
-        nuevaFila.setAttribute("data-contacto-id", "nuevo");
-        nuevaFila.className = "fila-nueva";
+        if (!tbody) return;
 
-        // ESTRUCTURA CORREGIDA - INCLUYENDO CLASE acciones-edicion
-        nuevaFila.innerHTML = `
-        <td contenteditable="true" data-field="area">Nueva Área</td>
-        <td contenteditable="true" data-field="producto_requerido">Nuevo Producto</td>
-        <td contenteditable="true" data-field="encargado">Nuevo Encargado</td>
-        <td contenteditable="true" data-field="puesto">Nuevo Puesto</td>
-        <td contenteditable="true" data-field="correo">nuevo@email.com</td>
-        <td contenteditable="true" data-field="telefono">1234567890</td>
-        <td class="acciones-edicion" style="display: table-cell !important;">
-            <button class="btn-eliminar-fila" title="Eliminar fila">🗑️</button>
-        </td>
-    `;
+        const nuevoId = `nuevo_${Date.now()}`;
+        const nuevaFila = document.createElement("tr");
+        nuevaFila.dataset.contactoId = nuevoId;
+        nuevaFila.dataset.nuevo = "true";
+        nuevaFila.style.backgroundColor = "#e8f5e9";
+
+        const campos = [
+            "area",
+            "producto",
+            "encargado",
+            "puesto",
+            "telefono",
+            "correo",
+        ];
+
+        campos.forEach((campo) => {
+            const celda = document.createElement("td");
+            celda.setAttribute("contenteditable", "true");
+            celda.setAttribute("data-field", campo);
+            celda.setAttribute("data-valor-original", "");
+            celda.textContent = "";
+            celda.style.cssText = `
+                border: 2px dashed #4caf50;
+                padding: 8px;
+                background-color: #f1f8e9;
+            `;
+            nuevaFila.appendChild(celda);
+        });
+
+        const accionesCell = document.createElement("td");
+        accionesCell.className = "acciones-edicion";
+        accionesCell.style.display = "table-cell";
+        accionesCell.innerHTML = `
+            <button class="btn-eliminar-fila" title="Eliminar fila">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        nuevaFila.appendChild(accionesCell);
 
         tbody.insertBefore(nuevaFila, tbody.firstChild);
 
-        // Aplicar estilos de edición a la nueva fila
-        const celdas = nuevaFila.querySelectorAll("td:not(.acciones-edicion)");
-        celdas.forEach((celda) => {
-            celda.style.border = "1px dashed #ccc";
-            celda.style.padding = "8px";
-            celda.setAttribute("data-valor-original", celda.textContent.trim());
-        });
-
-        nuevaFila.scrollIntoView({ behavior: "smooth", block: "nearest" });
-
-        errorManager.mostrarError(
-            "Nueva fila agregada. Recuerda guardar los cambios cuando termines.",
-            "success",
-            3000
-        );
-        console.log("➕ Nueva fila agregada en modo edición");
+        setTimeout(() => {
+            const primeraCelda = nuevaFila.querySelector("td");
+            if (primeraCelda) primeraCelda.focus();
+        }, 10);
     },
 
-    // Eliminar fila
     eliminarFila: function (boton) {
         const fila = boton.closest("tr");
-        const contactoId = fila.getAttribute("data-contacto-id");
+        if (!fila) return;
 
-        if (contactoId && contactoId !== "nuevo") {
-            if (
-                !confirm(
-                    "¿Estás seguro de que quieres eliminar este contacto? Esta acción no se puede deshacer."
-                )
-            ) {
-                return;
+        const esNueva = fila.dataset.nuevo === "true";
+        const contactoId = fila.dataset.contactoId;
+
+        const mensaje = esNueva
+            ? "¿Eliminar esta fila nueva?"
+            : "¿Estás seguro de eliminar este contacto?";
+
+        if (!confirm(mensaje)) return;
+
+        if (!esNueva && contactoId && !contactoId.startsWith("temp")) {
+            if (!this.cambiosPendientes.has("eliminados")) {
+                this.cambiosPendientes.set("eliminados", []);
             }
-            this.eliminarContactoServidor(contactoId, fila);
-        } else {
+            this.cambiosPendientes.get("eliminados").push(contactoId);
+        }
+
+        fila.style.transition = "opacity 0.3s, transform 0.3s";
+        fila.style.opacity = "0";
+        fila.style.transform = "translateX(20px)";
+
+        setTimeout(() => {
             fila.remove();
-            console.log("🗑️ Fila nueva eliminada localmente");
-        }
+        }, 300);
     },
 
-    async eliminarContactoServidor(contactoId, fila) {
-        try {
-            console.log(`🗑️ Eliminando contacto ${contactoId} del servidor...`);
-
-            const response = await fetch(`/api/contactos/${contactoId}`, {
-                method: "DELETE",
-                headers: {
-                    "X-CSRF-TOKEN": document
-                        .querySelector('meta[name="csrf-token"]')
-                        .getAttribute("content"),
-                    "Content-Type": "application/json",
-                },
-            });
-
-            const resultado = await response.json();
-
-            if (resultado.success) {
-                fila.remove();
-                errorManager.mostrarError(
-                    "Contacto eliminado exitosamente",
-                    "success",
-                    3000
-                );
-                console.log("✅ Contacto eliminado del servidor");
-            } else {
-                throw new Error(resultado.message);
-            }
-        } catch (error) {
-            console.error("❌ Error eliminando contacto:", error);
-            errorManager.mostrarError(`Error al eliminar: ${error.message}`);
-        }
-    },
-
-    // GUARDAR CAMBIOS - CORREGIDO
     async guardarCambios() {
         try {
-            console.log("💾 Guardando todos los cambios en SQL Server...");
-
             const tbody = document.getElementById("cuerpo-tabla-contactos");
+            if (!tbody) {
+                alert("No se encontró la tabla de contactos");
+                return;
+            }
+
             const filas = tbody.querySelectorAll("tr");
-            const cambios = [];
+            const operaciones = [];
 
-            // Recolectar cambios - ESTRUCTURA CORREGIDA
-            for (const fila of filas) {
-                const contactoId = fila.getAttribute("data-contacto-id");
+            filas.forEach((fila) => {
+                const contactoId = fila.dataset.contactoId;
+                const esNueva = fila.dataset.nuevo === "true";
+                const esTemporal = contactoId && contactoId.startsWith("temp");
 
-                // OBTENER CELDAS CORRECTAMENTE - excluir columna de acciones
-                const celdas = fila.querySelectorAll(
-                    "td:not(.acciones-edicion)"
-                );
-
-                // VERIFICAR QUE TENEMOS LAS CELDAS CORRECTAS
-                if (celdas.length < 6) {
-                    console.warn("❌ Fila con estructura incorrecta:", fila);
-                    continue;
+                if (esNueva || esTemporal) {
+                    const datos = this.obtenerDatosFila(fila);
+                    if (datos) {
+                        operaciones.push({
+                            tipo: "crear",
+                            datos: {
+                                ...datos,
+                                empresa_id: this.companyIdActual,
+                            },
+                        });
+                    }
+                } else {
+                    const tieneCambios = this.tieneCambiosFila(fila);
+                    if (tieneCambios && contactoId) {
+                        const datos = this.obtenerDatosFila(fila);
+                        if (datos) {
+                            operaciones.push({
+                                tipo: "actualizar",
+                                id: contactoId,
+                                datos: datos,
+                            });
+                        }
+                    }
                 }
+            });
 
-                const datos = {
-                    empresa_id: this.companyIdActual,
-                    area: celdas[0].textContent.trim(),
-                    producto_requerido: celdas[1].textContent.trim(),
-                    encargado: celdas[2].textContent.trim(),
-                    puesto: celdas[3].textContent.trim(),
-                    correo: celdas[4].textContent.trim(),
-                    telefono: celdas[5].textContent.trim(),
-                };
-
-                cambios.push({
-                    id: contactoId,
-                    datos: datos,
-                    esNuevo: contactoId === "nuevo",
+            if (this.cambiosPendientes.has("eliminados")) {
+                const eliminados = this.cambiosPendientes.get("eliminados");
+                eliminados.forEach((id) => {
+                    operaciones.push({
+                        tipo: "eliminar",
+                        id: id,
+                    });
                 });
             }
 
-            console.log("📦 Cambios a guardar:", cambios);
-
-            // Procesar cambios
-            let cambiosExitosos = 0;
-            for (const cambio of cambios) {
-                if (cambio.esNuevo) {
-                    await this.guardarNuevoContacto(cambio.datos);
-                } else {
-                    await this.actualizarContacto(cambio.id, cambio.datos);
-                }
-                cambiosExitosos++;
+            if (operaciones.length === 0) {
+                alert("ℹ️ No hay cambios para guardar");
+                return;
             }
 
-            errorManager.mostrarError(
-                `✅ ${cambiosExitosos} cambios guardados exitosamente en SQL Server`,
-                "success",
-                3000
-            );
-            this.finalizarEdicion();
+            this.mostrarIndicadorCarga();
 
-            // Recargar datos para sincronizar con servidor
-            setTimeout(() => {
-                if (typeof window.recargarDatosEmpresa === "function") {
-                    window.recargarDatosEmpresa();
+            const resultados = [];
+            for (const operacion of operaciones) {
+                try {
+                    let resultado;
+                    switch (operacion.tipo) {
+                        case "crear":
+                            resultado = await this.crearContacto(
+                                operacion.datos
+                            );
+                            break;
+                        case "actualizar":
+                            resultado = await this.actualizarContacto(
+                                operacion.id,
+                                operacion.datos
+                            );
+                            break;
+                        case "eliminar":
+                            resultado = await this.eliminarContacto(
+                                operacion.id
+                            );
+                            break;
+                    }
+                    resultados.push({ ...operacion, exito: resultado });
+                } catch (error) {
+                    resultados.push({
+                        ...operacion,
+                        exito: false,
+                        error: error.message,
+                    });
                 }
-            }, 1000);
+            }
+
+            this.ocultarIndicadorCarga();
+
+            const exitosas = resultados.filter((r) => r.exito).length;
+            const fallidas = resultados.filter((r) => !r.exito).length;
+
+            if (fallidas > 0) {
+                alert(
+                    `⚠️ Guardado parcial: ${exitosas} exitosas, ${fallidas} fallidas.`
+                );
+            } else {
+                alert(`✅ ${exitosas} cambios guardados exitosamente`);
+            }
+
+            await this.recargarDatosDesdeServidor();
+            this.finalizarEdicion();
         } catch (error) {
-            console.error("❌ Error guardando cambios:", error);
-            errorManager.mostrarError(
-                `Error al guardar cambios: ${error.message}`
-            );
+            this.ocultarIndicadorCarga();
+            alert("❌ Error al guardar cambios: " + error.message);
         }
     },
 
-    async guardarNuevoContacto(datos) {
-        console.log("🆕 Guardando nuevo contacto:", datos);
+    obtenerDatosFila: function (fila) {
+        const celdas = fila.querySelectorAll("td:not(.acciones-edicion)");
+        if (celdas.length < 6) return null;
 
-        const response = await fetch("/api/contactos", {
+        const datos = {};
+        celdas.forEach((celda) => {
+            const campo = celda.getAttribute("data-field");
+            if (campo) {
+                datos[campo] = celda.textContent.trim();
+            }
+        });
+
+        if (!datos.area) datos.area = "";
+        if (!datos.producto) datos.producto = "";
+        if (!datos.encargado) datos.encargado = "";
+        if (!datos.puesto) datos.puesto = "";
+        if (!datos.telefono) datos.telefono = "";
+        if (!datos.correo) datos.correo = "";
+
+        return datos;
+    },
+
+    tieneCambiosFila: function (fila) {
+        const celdas = fila.querySelectorAll("td[contenteditable='true']");
+        for (const celda of celdas) {
+            const original = celda.getAttribute("data-valor-original");
+            const actual = celda.textContent.trim();
+            if (original !== actual) return true;
+        }
+        return false;
+    },
+
+    async crearContacto(datos) {
+        const csrfToken = this.obtenerCSRFToken();
+        const response = await fetch(this.API_URLS.contactos, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document
-                    .querySelector('meta[name="csrf-token"]')
-                    .getAttribute("content"),
+                Accept: "application/json",
+                "X-CSRF-TOKEN": csrfToken,
             },
             body: JSON.stringify(datos),
         });
 
-        const resultado = await response.json();
-
-        if (!resultado.success) {
-            throw new Error(resultado.message);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP ${response.status}`);
         }
 
-        console.log(
-            "✅ Nuevo contacto guardado en SQL Server:",
-            resultado.contacto
-        );
-        return resultado.contacto;
+        const result = await response.json();
+        if (!result.success)
+            throw new Error(result.message || "Error del servidor");
+        return true;
     },
 
-    async actualizarContacto(contactoId, datos) {
-        console.log("✏️ Actualizando contacto:", contactoId, datos);
-
-        const response = await fetch(`/api/contactos/${contactoId}`, {
+    async actualizarContacto(id, datos) {
+        const csrfToken = this.obtenerCSRFToken();
+        const response = await fetch(`${this.API_URLS.contactos}/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document
-                    .querySelector('meta[name="csrf-token"]')
-                    .getAttribute("content"),
+                Accept: "application/json",
+                "X-CSRF-TOKEN": csrfToken,
             },
             body: JSON.stringify(datos),
         });
 
-        const resultado = await response.json();
-
-        if (!resultado.success) {
-            throw new Error(resultado.message);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP ${response.status}`);
         }
 
-        console.log(
-            "✅ Contacto actualizado en SQL Server:",
-            resultado.contacto
-        );
-        return resultado.contacto;
+        const result = await response.json();
+        if (!result.success)
+            throw new Error(result.message || "Error del servidor");
+        return true;
+    },
+
+    async eliminarContacto(id) {
+        const csrfToken = this.obtenerCSRFToken();
+        const response = await fetch(`${this.API_URLS.contactos}/${id}`, {
+            method: "DELETE",
+            headers: {
+                Accept: "application/json",
+                "X-CSRF-TOKEN": csrfToken,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (!result.success)
+            throw new Error(result.message || "Error del servidor");
+        return true;
+    },
+
+    async recargarDatosDesdeServidor() {
+        if (
+            window.infoEmpresaManager &&
+            window.infoEmpresaManager.recargarDatos
+        ) {
+            await window.infoEmpresaManager.recargarDatos();
+        } else {
+            location.reload();
+        }
+    },
+
+    obtenerCSRFToken: function () {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) return meta.getAttribute("content");
+        const tokenInput = document.querySelector('input[name="_token"]');
+        return tokenInput ? tokenInput.value : "";
+    },
+
+    mostrarIndicadorCarga: function () {
+        const existente = document.getElementById("indicador-carga");
+        if (existente) existente.remove();
+
+        const indicador = document.createElement("div");
+        indicador.id = "indicador-carga";
+        indicador.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="spinner" style="width: 24px; height: 24px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <div>
+                    <strong>Guardando cambios...</strong><br>
+                    <small>Por favor espere</small>
+                </div>
+            </div>
+        `;
+        indicador.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            color: #333;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 1001;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border-left: 4px solid #3498db;
+        `;
+        document.body.appendChild(indicador);
+    },
+
+    ocultarIndicadorCarga: function () {
+        const indicador = document.getElementById("indicador-carga");
+        if (indicador) {
+            indicador.style.transition = "opacity 0.3s";
+            indicador.style.opacity = "0";
+            setTimeout(() => indicador.remove(), 300);
+        }
     },
 
     cancelarEdicion: function () {
         if (!this.modoEdicion) return;
-
-        if (this.verificarCambiosNoGuardados()) {
-            if (
-                !confirm(
-                    "⚠️ Tienes cambios sin guardar. ¿Estás seguro de que quieres cancelar? Se perderán todos los cambios no guardados."
-                )
-            ) {
-                return;
-            }
+        if (confirm("¿Cancelar edición y perder los cambios?")) {
+            this.finalizarEdicion();
+            alert("Edición cancelada");
         }
-
-        console.log("❌ Cancelando edición...");
-
-        // Restaurar tabla original
-        if (this.tablaOriginal) {
-            document.getElementById("cuerpo-tabla-contactos").innerHTML =
-                this.tablaOriginal;
-        }
-
-        this.modoEdicion = false;
-        this.ocultarBotonesEdicion();
-        errorManager.mostrarError(
-            "Edición cancelada - Cambios descartados",
-            "info",
-            3000
-        );
     },
 
     finalizarEdicion: function () {
         this.modoEdicion = false;
-        this.ocultarBotonesEdicion();
-        this.tablaOriginal = null;
-    },
+        this.cambiosPendientes.clear();
 
-    verificarCambiosNoGuardados: function () {
-        if (!this.modoEdicion) return false;
+        document.getElementById("btn-activar-edicion").style.display = "flex";
+        document.getElementById("btn-guardar-cambios").style.display = "none";
+        document.getElementById("btn-cancelar-edicion").style.display = "none";
+        document.getElementById("btn-nueva-fila").style.display = "none";
 
-        const tbody = document.getElementById("cuerpo-tabla-contactos");
-        const filas = tbody.querySelectorAll("tr");
+        const indicador = document.getElementById("indicador-edicion");
+        if (indicador) indicador.remove();
 
-        for (const fila of filas) {
-            const celdas = fila.querySelectorAll("td[contenteditable='true']");
-            for (const celda of celdas) {
-                const valorOriginal = celda.getAttribute("data-valor-original");
-                const valorActual = celda.textContent.trim();
-
-                if (valorOriginal !== valorActual) {
-                    return true;
-                }
-            }
-
-            if (fila.getAttribute("data-contacto-id") === "nuevo") {
-                return true;
-            }
+        if (
+            window.infoEmpresaManager &&
+            window.infoEmpresaManager.recargarDatos
+        ) {
+            window.infoEmpresaManager.recargarDatos();
         }
-
-        return false;
     },
 };
 
-// Inicialización automática
 document.addEventListener("DOMContentLoaded", function () {
-    setTimeout(function () {
-        if (document.getElementById("cuerpo-tabla-contactos")) {
-            editManager.inicializar();
-        } else {
-            setTimeout(function () {
+    const esperarInfoEmpresa = setInterval(() => {
+        if (window.infoEmpresaManager) {
+            clearInterval(esperarInfoEmpresa);
+            setTimeout(() => {
                 editManager.inicializar();
-            }, 1000);
+            }, 500);
         }
-    }, 500);
+    }, 100);
 });
 
-if (typeof window !== "undefined") {
-    window.recargarEditManager = function () {
-        setTimeout(() => {
-            editManager.inicializar();
-        }, 1000);
-    };
-}
+window.editManager = editManager;
+window.activarModoEdicion = function () {
+    editManager.activarModoEdicion();
+};

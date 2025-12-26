@@ -1,0 +1,543 @@
+/* ========================================
+ * ESTILOS PARA INFORMACIÓN DE EMPRESA - CAMPOS NUEVOS
+ * NO MODIFICA EL styles.css EXISTENTE
+ * ======================================== */
+
+/* Contenedor principal de información */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.info-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.info-item label {
+    display: block;
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.info-item span {
+    display: block;
+    color: #333;
+    font-size: 1rem;
+}
+
+.info-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.notes-content {
+    background: rgba(102, 126, 234, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+/* Botón de edición */
+.edit-info-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.edit-info-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+/* Formulario de edición */
+#info-edit-form {
+    display: none;
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border: 2px solid #e2e8f0;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Acciones del formulario */
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Footer de información */
+.info-footer {
+    text-align: right;
+    color: #718096;
+    margin-top: 15px;
+    font-size: 0.85rem;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Contenedor de header mejorado */
+.info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.info-header h2 {
+    color: #2d3748;
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .info-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .edit-info-btn {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .info-item {
+        padding: 12px;
+    }
+
+    #info-edit-form {
+        padding: 20px 15px;
+    }
+
+    .info-header h2 {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+}
+
+/* ========================================
+ * ESTILOS PARA ÁREAS DE EMPRESA
+ * ======================================== */
+
+.areas-section {
+    margin: 30px 0;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.areas-section h3 {
+    color: #2d3748;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
+    font-size: 1.3rem;
+}
+
+.areas-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.area-item {
+    background: white;
+    border-radius: 6px;
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.area-item:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.area-form {
+    display: grid;
+    grid-template-columns: 1fr 2fr auto;
+    gap: 10px;
+    align-items: start;
+}
+
+.area-input {
+    padding: 10px;
+    border: 2px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.area-form textarea {
+    padding: 10px;
+    border: 2px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.btn-remove-area {
+    background: #fed7d7;
+    color: #c53030;
+    border: none;
+    border-radius: 4px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-remove-area:hover {
+    background: #fc8181;
+    color: white;
+}
+
+/* Modal para ver áreas */
+.areas-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.areas-modal-content {
+    background: white;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    border-radius: 12px;
+    padding: 30px;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #667eea;
+}
+
+.modal-header h2 {
+    color: #2d3748;
+    margin: 0;
+    font-size: 1.6rem;
+}
+
+.btn-cerrar-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #718096;
+    transition: color 0.3s ease;
+}
+
+.btn-cerrar-modal:hover {
+    color: #c53030;
+}
+
+.areas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.area-card {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.area-card h4 {
+    color: #2d3748;
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+}
+
+.area-card p {
+    color: #718096;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.area-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-editar-area,
+.btn-eliminar-area {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.btn-editar-area {
+    background: #bee3f8;
+    color: #2b6cb0;
+}
+
+.btn-editar-area:hover {
+    background: #90cdf4;
+}
+
+.btn-eliminar-area {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+.btn-eliminar-area:hover {
+    background: #fc8181;
+    color: white;
+}
+
+/* Responsive para áreas */
+@media (max-width: 768px) {
+    .area-form {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .area-form textarea {
+        min-height: 80px;
+    }
+
+    .btn-remove-area {
+        width: 100%;
+        height: 40px;
+    }
+
+    .areas-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .areas-modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+}
+
+/* Estilos para el select y tags de industria */
+.industria-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid #bbdefb;
+}
+
+/* Estilo específico para cada tipo de industria */
+.industria-tag[data-industria="Linea Alimentaria"] {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border-color: #c8e6c9;
+}
+
+.industria-tag[data-industria="Linea Avicola"] {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border-color: #ffcc80;
+}
+
+.industria-tag[data-industria="Tratamiento de aguas industriales y residuales"] {
+    background-color: #e1f5fe;
+    color: #0288d1;
+    border-color: #b3e5fc;
+}
+
+.industria-tag[data-industria="Linea industrial Metal- Mecanica"] {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+    border-color: #e1bee7;
+}
+
+.industria-tag[data-industria="Linea Hospitalaria"] {
+    background-color: #ffebee;
+    color: #d32f2f;
+    border-color: #ffcdd2;
+}
+
+.industria-tag[data-industria="Linea Establos"] {
+    background-color: #fff8e1;
+    color: #ff8f00;
+    border-color: #ffecb3;
+}
+
+.industria-tag[data-industria="Linea Institucional"] {
+    background-color: #f9fbe7;
+    color: #827717;
+    border-color: #f0f4c3;
+}
+
+.industria-tag[data-industria="Linea para la industria del papel"] {
+    background-color: #fce4ec;
+    color: #c2185b;
+    border-color: #f8bbd9;
+}
+
+.industria-tag[data-industria="Otra"] {
+    background-color: #f5f5f5;
+    color: #616161;
+    border-color: #e0e0e0;
+}
+
+/* Estilo para el select */
+#edit-industria {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+#edit-industria:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+/* Opciones con íconos (opcional) */
+#edit-industria option {
+    padding: 8px;
+}
+
+#edit-industria option[value="Linea Alimentaria"] {
+    background-color: #f1f8e9;
+}
+
+#edit-industria option[value="Linea Avicola"] {
+    background-color: #fff3e0;
+}
+
+#edit-industria option[value="Tratamiento de aguas industriales y residuales"] {
+    background-color: #e1f5fe;
+}
+
+/* Indicador de campo requerido */
+.form-group label[for="edit-industria"]::after {
+    content: " *";
+    color: #e53e3e;
+}
